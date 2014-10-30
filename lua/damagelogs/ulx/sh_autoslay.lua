@@ -8,7 +8,7 @@ local function CreateCommand()
 		Damagelog:SetSlays(calling_ply, target:SteamID(), rounds, reason)
 	end
 	
-	local autoslay = ulx.command("TTT", "ulx autoslay", ulx.autoslay, "!autoslay" )
+	local autoslay = ulx.command("TTT Admin", "ulx autoslay", ulx.autoslay, "!autoslay" )
 	autoslay:addParam({ type=ULib.cmds.PlayerArg })
 	autoslay:addParam({ 
 		type=ULib.cmds.NumArg,
