@@ -20,6 +20,7 @@ local function HandlePreviousReports(data)
 	data.id = tonumber(data.id)
 	local report = data.report
 	local decoded = util.JSONToTable(data.report)
+	PrintTable(decoded)
 	decoded.index = data.id
 	decoded.round = -1
 	table.insert(Damagelog.previous_reports, decoded)
@@ -86,7 +87,11 @@ if Damagelog.Use_MySQL then
 		end
 		list:start()
 		local previous_reports = self:query("SELECT * FROM damagelog_previousreports WHERE serverid = '".. Damagelog.ServerID .."' ORDER BY id;")
-		previous_reports.onSuccess = function()
+		previous_reports.onSuccess = function(query)
+			local data = query:getData()
+			for _, row in pairs(data) do 
+				HandlePreviousReports(row)
+			end
 			Damagelog:TruncateReports()
 		end
 		previous_reports:start()
@@ -156,8 +161,8 @@ hook.Add("TTTEndRound", "Damagelog_EndRound", function()
 		logs = util.TableToJSON(logs)
 		local t = os.time()
 		if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
-			local insert = string.format("INSERT INTO damagelog_oldlogs(`serverid`, `date`, `round`, `map`, `damagelog`) VALUES(%s, %i, %i, \"%s\", %s);",
-				Damagelog.ServerID, t, Damagelog.CurrentRound, game.GetMap(), sql.SQLStr(logs))
+			local insert = string.format("INSERT INTO damagelog_oldlogs(`serverid`, `date`, `round`, `map`, `damagelog`) VALUES(\"%s\", %i, %i, \"%s\", %s);",
+			Damagelog.ServerID, t, Damagelog.CurrentRound, game.GetMap(), sql.SQLStr(logs))
 			local query = Damagelog.database:query(insert)
 			query:start()
 		elseif not Damagelog.Use_MySQL then

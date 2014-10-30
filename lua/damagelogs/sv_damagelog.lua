@@ -135,11 +135,11 @@ function Damagelog:SendDamagelog(ply, round)
 	if round == -1 then
 		if not self.last_round_map then return end
 		if self.Use_MySQL and self.MySQL_Connected then
-			local query = self.database:query("SELECT UNCOMPRESS(damagelog) FROM damagelog_oldlogs WHERE date = "..self.last_round_map)
+			local query = self.database:query("SELECT damagelog FROM damagelog_oldlogs WHERE date = "..self.last_round_map)
 			query.onSuccess = function(q)
 				local data = q:getData()
 				if data and data[1] then
-					local encoded = data[1]["UNCOMPRESS(damagelog)"]
+					local encoded = data[1]["damagelog"]
 					local decoded = util.JSONToTable(encoded)
 					if not decoded then
 						decoded = { roles = {}, DamageTable = {"empty"} }
