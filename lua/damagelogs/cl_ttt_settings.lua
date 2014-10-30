@@ -1,8 +1,6 @@
 CreateClientConVar("ttt_dmglogs_rdmpopups", "1", FCVAR_ARCHIVE)
 
-
-
-'''
+--[[
 -- Wird intern gelöst
 hook.Add("TTTSettingsTabs", "DamagelogsTTTSettingsTab", function(dtabs)
 
@@ -30,4 +28,4 @@ hook.Add("TTTSettingsTabs", "DamagelogsTTTSettingsTab", function(dtabs)
 
 	dtabs:AddSheet("Damagelogs", dsettings, "icon16/table_gear.png", false, false, "Damagelog menu settings")
 end)
-'''
+]]--
