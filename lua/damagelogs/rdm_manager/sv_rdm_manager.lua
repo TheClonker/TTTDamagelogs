@@ -118,7 +118,7 @@ function Damagelog.rdmReporter:AddReport(ply, message, killer)
 		end
 		local encoded = util.TableToJSON(tbl)
 		if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
-			local insert_report = Damagelog.database:query("INSERT INTO damagelog_previousreports (`serverid`, `_index`, `report`) VALUES(".. Damagelog.serverid ..", "..repport.index..","..sql.SQLStr(encoded)..");")
+			local insert_report = Damagelog.database:query("INSERT INTO damagelog_previousreports (`serverid`, `_index`, `report`) VALUES(".. Damagelog.ServerID ..", "..repport.index..","..sql.SQLStr(encoded)..");")
 			insert_report:start()	
 		elseif not Damagelog.Use_MySQL then
 			local count = sql.QueryValue("SELECT COUNT(id) FROM damagelog_previousreports;")

@@ -14,8 +14,6 @@ if file.Exists("gmn_serverid.txt", "DATA") then
 	Damagelog.ServerID = file.Read("gmn_serverid.txt", "DATA") or "temp"
 end
 
-print(Damagelog.ServerID)
-
 local limit = os.time() - Damagelog.LogDays*24*60*60
 
 local function HandlePreviousReports(data)
