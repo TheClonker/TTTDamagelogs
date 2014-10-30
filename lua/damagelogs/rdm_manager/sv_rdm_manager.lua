@@ -256,7 +256,8 @@ net.Receive("RDMRespond", function(len, ply)
 			end
 			if found then
 				net.Start("RDMApologise")
-				net.WriteEntity(ply)
+				net.WriteString(ply:Nick())
+				net.WriteString(ply:SteamID())
 				net.WriteString(message)
 				net.Send(found)
 			end
@@ -471,8 +472,12 @@ concommand.Add("DLRDM_State", function(ply, cmd, args, str)
 					end
 				end
 				local encoded = util.TableToJSON(tbl)
-				local update = Damagelog.database:query("UPDATE damagelog_previousreports SET report = "..sql.SQLStr(encoded).." WHERE _index = "..tbl.index..";")
-				update:start()
+				if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
+					local update = Damagelog.database:query("UPDATE damagelog_previousreports SET report = "..sql.SQLStr(encoded).." WHERE _index = "..tbl.index..";")
+					update:start()
+				else
+					sql.Query("UPDATE damagelog_previousreports SET report = "..sql.SQLStr(encoded).." WHERE _index = "..tbl.index..";")
+				end
 			end;
 		end;
 	end;

@@ -4,7 +4,7 @@ include("damagelogs/cl_tabs/settings.lua")
 include("damagelogs/cl_tabs/shoots.lua")
 include("damagelogs/cl_tabs/old_logs.lua")
 include("damagelogs/cl_tabs/rdm_manager.lua")
-include("damagelogs/cl_tabs/about.lua")
+include("damagelogs/cl_tabs/statistics.lua")
 include("damagelogs/sh_privileges.lua")
 include("damagelogs/sh_sync_entity.lua")
 include("damagelogs/cl_filters.lua")
@@ -17,6 +17,7 @@ include("damagelogs/not_my_code/base64decode.lua")
 include("damagelogs/rdm_manager/cl_rdm_manager.lua")
 include("damagelogs/cl_ttt_settings.lua")
 include("damagelogs/cl_recording.lua")
+include("damagelogs/ulx/sh_autoslay.lua")
 
 local outdated = false
 http.Fetch("https://api.github.com/repos/Tommy228/TTTDamagelogs/contents/version.md?ref=master", function(body)
@@ -47,11 +48,52 @@ function Damagelog:OpenMenu()
 	end
 	self.Menu = vgui.Create("DFrame")
 	self.Menu:SetSize(x, y)
-	self.Menu:SetTitle("Tommy228's Damagelogs") 
+	self.Menu:SetTitle("TTT Damagelogs version "..self.VERSION) 
 	self.Menu:SetDraggable(false)
 	self.Menu:MakePopup()
 	self.Menu:SetKeyboardInputEnabled(false)
-	self.Menu:Center()	
+	self.Menu:Center()
+	self.Menu.AboutPos = 0
+	self.Menu.AboutPosMax = 80
+	self.Menu.AboutState = false
+	self.Menu.About = function(self)
+		self.AboutState = not self.AboutState
+	end
+	self.Menu.Think = function(self)
+		self.AboutMoving = true
+		if self.AboutState and self.AboutPos < self.AboutPosMax then
+			self.AboutPos = self.AboutPos + 15
+		elseif not self.AboutState and self.AboutPos > 0 then
+			self.AboutPos = self.AboutPos - 15
+		else
+			self.AboutMoving = false
+		end
+	end
+	local about_text = [[Created by Tommy228. Code contributors :
+	- Azarym
+	- Pandaman09
+	- Bytewave]]
+	self.Menu.PaintOver = function(self, w, h)
+		local _x,_y,_w,_h = x-200, outdated and 80 or 50, 195, self.AboutPos
+		surface.SetDrawColor(color_black)
+		surface.DrawRect(_x,_y,_w,_h)
+		surface.SetDrawColor(Color(255, 245, 148))
+		surface.DrawRect(_x+1, _y+1, _w-2, _h-2)
+		if self.AboutPos >= 50 then
+			surface.SetFont("DermaDefault")
+			surface.SetTextColor(color_black)
+			surface.SetTextPos(_x + 5, _y+5)
+			surface.DrawText("Created by Tommy228.")
+			surface.SetTextPos(_x + 5, _y  + 25)
+			surface.DrawText("Code contributors :")
+			surface.SetTextPos(_x + 5, _y  + 40)
+			surface.DrawText("- Azarym")
+			surface.SetTextPos(_x + 5, _y  + 55)
+			surface.DrawText("- Bytewave")
+			surface.SetTextPos(_x + 5, _y  + 70)
+			surface.DrawText("- Pandaman09")			
+		end
+	end
 	if outdated then
 		local info = vgui.Create("azInfoText", self.Menu);
 		info:SetText("Server owners : this version is outdated! You can get the latest one on http://github.com/Tommy228/TTTDamagelogs");
@@ -66,42 +108,37 @@ function Damagelog:OpenMenu()
 	self:DrawShootsTab(x, y)
 	self:DrawOldLogs(x, y)
 	self:DrawRDMManager(x, y)
+	self:Statistics(x,y)
 	self:DrawSettings(x, y)
-	self:About(x,y)
-end
-
-function Damagelog:CheckPrivileges()
-	if not LocalPlayer():CanUseDamagelog() then
-		chat.AddText(Color(255, 62, 62, 255), "You are currently not allowed to open the Damagelog Menu.")
-		return false
+	self.About = vgui.Create("DButton", self.Menu)
+	self.About:SetPos(x - 60, outdated and 57 or 27)
+	self.About:SetSize(55, 19)
+	self.About:SetText("▼ About")
+	self.About.DoClick = function()
+		self.Menu:About()
+		self.About:SetText(self.Menu.AboutState and "▲ About" or "▼ About")
 	end
-	return true
 end
 
 concommand.Add("damagelog", function()
-	local allowed = Damagelog:CheckPrivileges()
-	if allowed then
-		Damagelog:OpenMenu()
-	end
+	Damagelog:OpenMenu()
 end)
 
 Damagelog.pressed_key = false
 function Damagelog:Think()
-	if input.IsKeyDown(KEY_F8) and not self.pressed_key then
+	if input.IsKeyDown(self.Key) and not self.pressed_key then
 		self.pressed_key = true
-		if self:CheckPrivileges() then
-			if not ValidPanel(self.Menu) then
-				self:OpenMenu()
+		if not ValidPanel(self.Menu) then
+			self:OpenMenu()
+		else
+			if self:IsRecording() then
+				self:StopRecording()
+				self.Menu:SetVisible(true)
 			else
-				if self:IsRecording() then
-					self:StopRecording()
-					self.Menu:SetVisible(true)
-				else
-					self.Menu:Close()
-				end
+				self.Menu:Close()
 			end
 		end
-	elseif self.pressed_key and not input.IsKeyDown(KEY_F8) then
+	elseif self.pressed_key and not input.IsKeyDown(self.Key) then
 		self.pressed_key = false
 	end
 end
@@ -119,9 +156,8 @@ end
 
 net.Receive("DL_InformSuperAdmins", function()
 	local nick = net.ReadString()
-	local round = net.ReadUInt(8)
 	if nick and round then
-		chat.AddText(Color(255,62,62), nick, color_white, " is alive and viewing the logs of the round ", Color(98,176,255), tostring(round), color_white, ".")
+		chat.AddText(Color(255,62,62), nick, color_white, " is alive and has loaded the logs of the current round.")
 	end
 end)
 

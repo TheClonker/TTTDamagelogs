@@ -4,7 +4,7 @@ AddCSLuaFile("damagelogs/cl_tabs/settings.lua")
 AddCSLuaFile("damagelogs/cl_tabs/shoots.lua")
 AddCSLuaFile("damagelogs/cl_tabs/old_logs.lua")
 AddCSLuaFile("damagelogs/cl_tabs/rdm_manager.lua")
-AddCSLuaFile("damagelogs/cl_tabs/about.lua")
+AddCSLuaFile("damagelogs/cl_tabs/statistics.lua")
 AddCSLuaFile("damagelogs/sh_privileges.lua")
 AddCSLuaFile("damagelogs/sh_sync_entity.lua")
 AddCSLuaFile("damagelogs/sh_events.lua")
@@ -18,6 +18,7 @@ AddCSLuaFile("damagelogs/rdm_manager/cl_rdm_manager.lua")
 AddCSLuaFile("damagelogs/config/config.lua")
 AddCSLuaFile("damagelogs/cl_ttt_settings.lua")
 AddCSLuaFile("damagelogs/cl_recording.lua")
+AddCSLuaFile("damagelogs/ulx/sh_autoslay.lua")
 
 include("damagelogs/config/config.lua")
 include("damagelogs/sh_sync_entity.lua")
@@ -27,6 +28,9 @@ include("damagelogs/not_my_code/orderedPairs.lua")
 include("damagelogs/sv_damageinfos.lua") 
 include("damagelogs/sh_weapontable.lua")
 include("damagelogs/sv_weapontable.lua")
+include("damagelogs/ulx/sh_autoslay.lua")
+include("damagelogs/ulx/sv_autoslay.lua")
+include("sv_statistics.lua")
 include("damagelogs/sv_oldlogs.lua")
 include("damagelogs/rdm_manager/sv_rdm_manager.lua")
 include("damagelogs/sv_stupidoverrides.lua")
@@ -125,9 +129,9 @@ function Damagelog:SendDamagelog(ply, round)
 	if self.MySQL_Error then
 		ply:PrintMessage(HUD_PRINTTALK, "Warning : Damagelogs MySQL connection error. The error has been saved on data/damagelog/mysql_error.txt")
 	end
-	if not ply:CanUseDamagelog() then return end
 	local damage_send
 	local roles = self.Roles[round]
+	local current = false
 	if round == -1 then
 		if not self.last_round_map then return end
 		if self.Use_MySQL and self.MySQL_Connected then
@@ -154,17 +158,19 @@ function Damagelog:SendDamagelog(ply, round)
 			self:TransferLogs(decoded.DamageTable, ply, round, decoded.roles)		
 		end
 	elseif round == self:GetSyncEnt():GetPlayedRounds() then
+		if not ply:CanUseDamagelog() then return end
 		damage_send = self.DamageTable
+		current = true
 	else
 		damage_send = self.old_tables[round]
 	end
 	if not damage_send then 
 		damage_send = { "empty" } 
 	end
-	self:TransferLogs(damage_send, ply, round, roles)
+	self:TransferLogs(damage_send, ply, round, roles, current)
 end
 
-function Damagelog:TransferLogs(damage_send, ply, round, roles)
+function Damagelog:TransferLogs(damage_send, ply, round, roles, current)
 	net.Start("DL_SendRoles")
 	net.WriteTable(roles or {})
 	net.Send(ply)
@@ -193,10 +199,9 @@ function Damagelog:TransferLogs(damage_send, ply, round, roles)
 			table.insert(superadmins, v)
 		end
 	end
-	if ply:IsActive() then
+	if current and ply:IsActive() then
 		net.Start("DL_InformSuperAdmins")
 		net.WriteString(ply:Nick())
-		net.WriteUInt(round, 8)
 		net.Send(self.AbuseMessageMode == 1 and superadmins or self.AbuseMessageMode == 2 and player.GetAll() or {})
 	end
 end

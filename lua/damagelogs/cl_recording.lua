@@ -184,7 +184,9 @@ hook.Add("Think", "Think_Record", function()
 					end
 					models[k].wep = v.wep
 					models[k].hp = v.hp
-					models[k]:SetSequence(v.sequence)
+					if models[k].SetSequence then
+						models[k]:SetSequence(v.sequence)
+					end
 					models[k].move_x = vector.x
 					models[k].move_y = vector.y
 					models[k].spin = angle.z
@@ -204,7 +206,9 @@ hook.Add("Think", "Think_Record", function()
 						end
 						local index = table.insert(models[k].traces, v.trace)
 						timer.Simple(0.2, function()
-							models[k].traces[index] = false
+							if models[k].traces then
+								models[k].traces[index] = false
+							end
 						end)
 					end
 				end
