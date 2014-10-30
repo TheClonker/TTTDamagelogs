@@ -1,6 +1,11 @@
 
 util.AddNetworkString("DL_SendStats")
 
+Damagelog.TeamDamages = 0
+Damagelog.NormalDamages = 0
+Damagelog.TeamKills = 0
+Damagelog.NormalKills = 0
+
 local day = tonumber(os.date("%d"))
 local month = tonumber(os.date("%m"))
 local year = tonumber(os.date("%y"))
