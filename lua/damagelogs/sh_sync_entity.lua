@@ -33,7 +33,8 @@ local CleanUpMap = game.CleanUpMap
 function game.CleanUpMap(send_to_clients, filters)
 	filters = filters or {}
 	table.insert(filters, "dmglog_sync_ent")
-	return CleanUpMap(send_to_clients, filters)
+	local res = CleanUpMap(send_to_clients, filters)
+	return res
 end
  
 if SERVER then

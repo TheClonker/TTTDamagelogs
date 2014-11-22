@@ -1,3 +1,5 @@
+
+
 --[[ User rights. 
 
 	NOTE : After the 2.0 update, everyone can open the logs to view the logs of the previous rounds.
@@ -13,9 +15,9 @@
 
 Damagelog:AddUser("superadmin", 4, true)
 Damagelog:AddUser("admin", 4, true)
-Damagelog:AddUser("operator", 3, true)
-Damagelog:AddUser("user", 2, false)
-Damagelog:AddUser("guest", 2, false)
+Damagelog:AddUser("operator", 1, false)
+Damagelog:AddUser("user", 1, false)
+Damagelog:AddUser("guest", 1, false)
 
 -- The F-key
 
@@ -41,9 +43,13 @@ Damagelog.RDM_Manager_Command = "!report"
 	Setting it to false will make the logs use SQLite (garrysmod/sv.db)
 ]]--
 
-Damagelog.Use_MySQL = true
+Damagelog.Use_MySQL = false
 
--- Enable advanced autoslay (WIP). MySQL and ULX users only! The command is !autoslay
+--[[ Enables the !autoslay command for ULX, designed to work with the logs.
+I recommend disabling the old slaynr script (if you are currently using it) and using this command instead.
+Works like that : !autoslay target number_of_slays reason
+Example : !autoslay tommy228 2 RDMing a traitor
+]]--
 
 Damagelog.Enable_Autoslay = true
 
