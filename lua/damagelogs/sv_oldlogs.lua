@@ -25,6 +25,7 @@ if Damagelog.Use_MySQL then
 		Damagelog.MySQL_Connected = true
 		local create_table1 = self:query([[CREATE TABLE IF NOT EXISTS damagelog_oldlogs (
 			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+			serverid INT UNSIGNED NOT NULL,
 			date INTEGER NOT NULL,
 			map TINYTEXT NOT NULL,
 			round TINYINT NOT NULL,

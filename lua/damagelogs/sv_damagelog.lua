@@ -37,6 +37,7 @@ include("damagelogs/sv_rdm_manager.lua")
 include("damagelogs/sv_stupidoverrides.lua")
 include("damagelogs/sv_recording.lua")
 include("damagelogs/sh_notify.lua")
+
 if Damagelog.RDM_Manager_Enabled then
 	include("damagelogs/sh_rdm_manager.lua")
 	resource.AddFile("sound/ui/vote_failure.wav")
@@ -58,6 +59,9 @@ Damagelog.Roles = Damagelog.Roles or {}
 if not file.IsDir("damagelog", "DATA") then
 	file.CreateDir("damagelog")
 end
+
+if
+
 
 function Damagelog:CheckDamageTable()
 	if Damagelog.DamageTable[1] == "empty" then
@@ -139,11 +143,11 @@ function Damagelog:SendDamagelog(ply, round)
 	if round == -1 then
 		if not self.last_round_map then return end
 		if self.Use_MySQL and self.MySQL_Connected then
-			local query = self.database:query("SELECT UNCOMPRESS(damagelog) FROM damagelog_oldlogs WHERE date = "..self.last_round_map)
+			local query = self.database:query("SELECT damagelog FROM damagelog_oldlogs WHERE serverid = '".. Damagelog.ServerID .."' and date = "..self.last_round_map)
 			query.onSuccess = function(q)
 				local data = q:getData()
 				if data and data[1] then
-					local encoded = data[1]["UNCOMPRESS(damagelog)"]
+					local encoded = data[1]["damagelog"]
 					local decoded = util.JSONToTable(encoded)
 					if not decoded then
 						decoded = { roles = {}, DamageTable = {"empty"} }

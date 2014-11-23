@@ -3,8 +3,14 @@ Damagelog = Damagelog or {}
 
 Damagelog.VERSION = "2.1.1"
 
+Damagelog.ServerID = "temp"
+
 if not file.IsDir("damagelog", "DATA") then
 	file.CreateDir("damagelog")
+end
+
+if file.Exists( "gmn_serverid.txt", "DATA" ) then
+	Damagelog.ServerID = file.Read( "gmn_serverid.txt", "DATA" ) or "temp"
 end
 
 Damagelog.User_rights = Damagelog.User_rights or {}
