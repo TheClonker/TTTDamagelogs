@@ -15,7 +15,7 @@
 
 Damagelog:AddUser("superadmin", 4, true)
 Damagelog:AddUser("admin", 4, true)
-Damagelog:AddUser("operator", 3, false)
+Damagelog:AddUser("operator", 3, true)
 Damagelog:AddUser("member", 3, false)
 Damagelog:AddUser("donator", 1, false)
 Damagelog:AddUser("stammspieler", 1, false)

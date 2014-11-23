@@ -1,4 +1,3 @@
-
 util.AddNetworkString("DL_AskLogsList")
 util.AddNetworkString("DL_AskOldLog")
 util.AddNetworkString("DL_SendOldLog")
@@ -25,11 +24,11 @@ if Damagelog.Use_MySQL then
 		Damagelog.MySQL_Connected = true
 		local create_table1 = self:query([[CREATE TABLE IF NOT EXISTS damagelog_oldlogs (
 			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-			serverid INT UNSIGNED NOT NULL,
+			serverid TINYTEXT NOT NULL,
 			date INTEGER NOT NULL,
 			map TINYTEXT NOT NULL,
 			round TINYINT NOT NULL,
-			damagelog BLOB NOT NULL,
+			damagelog LONGTEXT NOT NULL,
 			PRIMARY KEY (id));
 		]])
 		create_table1:start()
@@ -39,6 +38,14 @@ if Damagelog.Use_MySQL then
 			PRIMARY KEY (class));
 		]])
 		create_table2:start()
+		local create_table3 = self:query([[CREATE TABLE damagelog_autoslay (
+			steamid varchar(255) NOT NULL,
+			admins tinytext NOT NULL,
+			slays SMALLINT UNSIGNED NOT NULL,
+			reason tinytext NOT NULL,
+			time BIGINT UNSIGNED NOT NULL)
+		]]))
+		create_table3:start()
 		local list = self:query("SELECT MIN(date), MAX(date) FROM damagelog_oldlogs;")
 		list.onSuccess = function(query)
 			local data = query:getData()
@@ -93,10 +100,11 @@ hook.Add("TTTEndRound", "Damagelog_EndRound", function()
 		logs = util.TableToJSON(logs)
 		local t = os.time()
 		if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
-			local insert = string.format("INSERT INTO damagelog_oldlogs(`date`, `round`, `map`, `damagelog`) VALUES(%i, %i, \"%s\", COMPRESS(%s));",
-				t, Damagelog.CurrentRound, game.GetMap(), sql.SQLStr(logs))
+			local insert = string.format("INSERT INTO damagelog_oldlogs(`serverid`,`date`, `round`, `map`, `damagelog`) VALUES(\"%s\", %i, %i, \"%s\", %s);", Damagelog.ServerID, t, Damagelog.CurrentRound, game.GetMap(), sql.SQLStr(logs))
+						file.Write( "dmglogdebug.txt", insert )
 			local query = Damagelog.database:query(insert)
 			query:start()
+
 		elseif not Damagelog.Use_MySQL then
 			local insert = string.format("INSERT INTO damagelog_oldlogs(`id`, `date`, `round`, `map`, `damagelog`) VALUES(%i, %i, %i, \"%s\", %s);",
 				GetLogsCount_SQLite() + 1, t, Damagelog.CurrentRound, game.GetMap(), sql.SQLStr(logs))
@@ -137,7 +145,7 @@ net.Receive("DL_AskOldLogRounds", function(_, ply)
 	local day = net.ReadUInt(32)
 	local _date = "20"..year.."-"..month.."-"..day
 	if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
-		local query_str = "SELECT date,map FROM damagelog_oldlogs WHERE date BETWEEN UNIX_TIMESTAMP(\"".._date.." 00:00:00\") AND UNIX_TIMESTAMP(\"".._date.." 23:59:59\") ORDER BY date ASC;"
+		local query_str = "SELECT date, map FROM damagelog_oldlogs WHERE `serverid` = '" .. Damagelog.ServerID .. "' and date BETWEEN UNIX_TIMESTAMP(\"".._date.." 00:00:00\") AND UNIX_TIMESTAMP(\"".._date.." 23:59:59\") ORDER BY date ASC;"
 		local query = Damagelog.database:query(query_str)
 		query.onSuccess = function(self)
 			if not IsValid(ply) then return end
@@ -162,12 +170,12 @@ end)
 net.Receive("DL_AskOldLog", function(_,ply)
 	local _time = net.ReadUInt(32)
 	if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
-		local query = Damagelog.database:query("SELECT UNCOMPRESS(damagelog) FROM damagelog_oldlogs WHERE date = ".._time..";")
+		local query = Damagelog.database:query("SELECT damagelog FROM damagelog_oldlogs WHERE `serverid` = '" .. Damagelog.ServerID .. "' and date = ".._time..";")
 		query.onSuccess = function(self)
 			local data = self:getData()
 			net.Start("DL_SendOldLog")
-			if data[1] and data[1]["UNCOMPRESS(damagelog)"] then
-				local compressed = util.Compress(data[1]["UNCOMPRESS(damagelog)"])
+			if data[1] and data[1]["damagelog"] then
+				local compressed = util.Compress(data[1]["damagelog"])
 				SendLogs(ply, compressed, false)
 			else
 				SendLogs(ply, nil, true)
