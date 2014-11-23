@@ -60,9 +60,6 @@ if not file.IsDir("damagelog", "DATA") then
 	file.CreateDir("damagelog")
 end
 
-if
-
-
 function Damagelog:CheckDamageTable()
 	if Damagelog.DamageTable[1] == "empty" then
 		table.Empty(Damagelog.DamageTable)
