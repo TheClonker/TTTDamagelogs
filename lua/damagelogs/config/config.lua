@@ -15,7 +15,10 @@
 
 Damagelog:AddUser("superadmin", 4, true)
 Damagelog:AddUser("admin", 4, true)
-Damagelog:AddUser("operator", 1, false)
+Damagelog:AddUser("operator", 3, false)
+Damagelog:AddUser("member", 3, false)
+Damagelog:AddUser("donator", 1, false)
+Damagelog:AddUser("stammspieler", 1, false)
 Damagelog:AddUser("user", 1, false)
 Damagelog:AddUser("guest", 1, false)
 
@@ -43,7 +46,7 @@ Damagelog.RDM_Manager_Command = "!report"
 	Setting it to false will make the logs use SQLite (garrysmod/sv.db)
 ]]--
 
-Damagelog.Use_MySQL = false
+Damagelog.Use_MySQL = true
 
 --[[ Enables the !autoslay command for ULX, designed to work with the logs.
 I recommend disabling the old slaynr script (if you are currently using it) and using this command instead.
