@@ -8,11 +8,26 @@ hook.Add("PlayerAuthed", "DamagelogNames", function(ply, steamid, uniqueid)
 		query.onSuccess = function(self)
 			if not IsValid(ply) then return end
 			local data = self:getData()
-			ply:SetNWInt("Autoslays_left", data or 0)
+			local slays
+			if data[1] ~= nil then
+				slays = data[1]["slays"]
+			else
+				slays = 0
+			end
+			ply:SetNWInt("Autoslays_left", slays)
 		end
 		query:start()
 	end	
 end)
+
+function Damagelog:GetName(steamid)
+	for k,v in pairs(player.GetAll()) do
+		if v:SteamID() == steamid then
+			return v:Nick()
+		end
+	end
+	return steamid
+end
 
 function Damagelog.SlayMessage(ply, message)
 	net.Start("DL_SlayMessage")
@@ -82,17 +97,16 @@ function Damagelog:SetSlays(admin, steamid, slays, reason, target)
 		    local query_str = "SELECT * FROM damagelog_autoslay WHERE steamid = '"..steamid.."' LIMIT 1;"
 			local query = Damagelog.database:query(query_str)
 			query.onSuccess = function(self)
-				if not IsValid(ply) then return end
 				local data = self:getData()
-				if data then
+				if data[1] ~= nil then
 					local adminid
 					if IsValid(admin) and type(admin) == "Player" then
-						adminid = admin:SteamID()
+						adminid = admin:Nick()
 					else
 						adminid = "Console"
 					end
-					local old_slays = tonumber(data.slays)
-					local old_steamids = util.JSONToTable(data.admins) or {}
+					local old_slays = tonumber(data[1]["slays"])
+					local old_steamids = util.JSONToTable(data[1]["admins"]) or {}
 				    local new_steamids = table.Copy(old_steamids)
 			        if not table.HasValue(new_steamids, adminid) then
 					    table.insert(new_steamids, adminid)
@@ -127,7 +141,7 @@ function Damagelog:SetSlays(admin, steamid, slays, reason, target)
 					ulx.fancyLogAdmin(admin, "#A added "..slays.." autoslays to #T with the reason : '#s'", target, reason)
 					NetworkSlays(steamid, slays)
 				end
-			end
+			end		
 			query:start()
 		end
 	else
@@ -141,16 +155,16 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 			timer.Simple(1, function()
 				v:SetNWBool("PlayedSRound", true)
 			end)
-
 			local query_str = "SELECT * FROM damagelog_autoslay WHERE steamid = '"..v:SteamID().."' LIMIT 1;"
 			local query = Damagelog.database:query(query_str)
 			query.onSuccess = function(self)
-				if data then
+				local data = self:getData()	
+				if data[1] ~= nil then
 					v:Kill()
-					local admins = util.JSONToTable(data.admins) or {}
-					local slays = data.slays
-					local reason = data.reason
-					local _time = data.time
+					local admins = util.JSONToTable(data[1]["admins"]) or {}
+					local slays = data[1]["slays"]
+					local reason = data[1]["reason"]
+					local _time = data[1]["time"]
 					slays = slays - 1
 					if slays <= 0 then
 						local query_str = "DELETE FROM damagelog_autoslay WHERE steamid = '"..v:SteamID().."';"
