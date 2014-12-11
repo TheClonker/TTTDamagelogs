@@ -102,7 +102,6 @@ hook.Add("TTTEndRound", "Damagelog_EndRound", function()
 		local t = os.time()
 		if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
 			local insert = string.format("INSERT INTO damagelog_oldlogs(`serverid`,`date`, `round`, `map`, `damagelog`) VALUES(\"%s\", %i, %i, \"%s\", %s);", Damagelog.ServerID, t, Damagelog.CurrentRound, game.GetMap(), sql.SQLStr(logs))
-						file.Write( "dmglogdebug.txt", insert )
 			local query = Damagelog.database:query(insert)
 			query:start()
 
