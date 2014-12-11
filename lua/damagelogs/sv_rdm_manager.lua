@@ -156,14 +156,18 @@ net.Receive("DL_ReportPlayer", function(_len, ply)
 	Damagelog.Reports.Current[index].index = index
 	for k,v in pairs(player.GetHumans()) do
 		if v:CanUseRDMManager() then
-			v:Damagelog_Notify(DAMAGELOG_NOTIFY_ALERT, ply:Nick().." has reported "..attacker:Nick().. " (#"..index..") !", 5, "ui/vote_failure.wav")
+			if v:Alive() then
+				v:Damagelog_Notify(DAMAGELOG_NOTIFY_ALERT, "A Player has been reported (#"..index..") !", 5, "ui/vote_failure.wav")	
+			else
+				v:Damagelog_Notify(DAMAGELOG_NOTIFY_ALERT, ply:Nick().." has reported "..attacker:Nick().. " (#"..index..") !", 5, "ui/vote_failure.wav")
+			end
 			v:NewReport(Damagelog.Reports.Current[index])
 		end
 	end
 	attacker:SendReport(Damagelog.Reports.Current[index])
-	if not attacker:CanUseRDMManager() then
+	--if not attacker:CanUseRDMManager() then
 		attacker:Damagelog_Notify(DAMAGELOG_NOTIFY_ALERT, ply:Nick().." has reported you!", 5, "ui/vote_failure.wav")
-	end
+	--end
 	ply:Damagelog_Notify(DAMAGELOG_NOTIFY_ALERT, "You have reported "..attacker:Nick(), 5, "")
 	UpdatePreviousReports()
 end)
@@ -233,7 +237,11 @@ net.Receive("DL_SendAnswer", function(_, ply)
 	tbl.response = text
 	for k,v in pairs(player.GetHumans()) do
 		if v:CanUseRDMManager() then	
-			v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, ply:Nick().." has answered to the report #"..index.." !", 5, "ui/vote_yes.wav")
+			if v:Alive() then
+				v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, "The reported Player has answerd report #"..index.." !", 5, "ui/vote_yes.wav")
+			else
+				v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, ply:Nick().." has answered to the report #"..index.." !", 5, "ui/vote_yes.wav")
+			end
 			v:UpdateReport(previous, index)
 		end
 	end
@@ -262,9 +270,17 @@ net.Receive("DL_GetForgive", function(_, ply)
 	for k,v in pairs(player.GetHumans()) do
 		if v:CanUseRDMManager() then	
 			if forgive then
-				v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, ply:Nick().." has canceled to the report #"..index.." !", 5, "ui/vote_yes.wav")
+				if v:Alive() then
+					v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, "Report #"..index.." has been canceled !", 5, "ui/vote_yes.wav")
+				else
+					v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, ply:Nick().." has canceled to the report #"..index.." !", 5, "ui/vote_yes.wav")
+				end
 			else
-				v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, ply:Nick().." did not forgive "..tbl.attacker_nick.." on the report #"..index.." !", 5, "ui/vote_yes.wav")
+				if v:Alive() then
+					v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, "The Player did not forgive report #"..index.." !", 5, "ui/vote_yes.wav")
+				else
+					v:Damagelog_Notify(DAMAGELOG_NOTIFY_INFO, ply:Nick().." did not forgive "..tbl.attacker_nick.." on the report #"..index.." !", 5, "ui/vote_yes.wav")
+				end
 			end
 			v:UpdateReport(previous, index)
 		end
