@@ -38,13 +38,14 @@ if Damagelog.Use_MySQL then
 			PRIMARY KEY (class));
 		]])
 		create_table2:start()
-		local create_table3 = self:query([[CREATE TABLE damagelog_autoslay (
+		local create_table3 = self:query([[CREATE TABLE IF NOT EXISTS damagelog_autoslay (
 			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 			steamid varchar(255) NOT NULL,
 			admins tinytext NOT NULL,
 			slays SMALLINT UNSIGNED NOT NULL,
 			reason tinytext NOT NULL,
-			time BIGINT UNSIGNED NOT NULL)
+			time BIGINT UNSIGNED NOT NULL,
+			PRIMARY KEY (id));
 		]])
 		create_table3:start()
 		local list = self:query("SELECT MIN(date), MAX(date) FROM damagelog_oldlogs;")
