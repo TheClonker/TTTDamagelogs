@@ -17,10 +17,9 @@ Damagelog:AddUser("superadmin", 4, true)
 Damagelog:AddUser("admin", 4, true)
 Damagelog:AddUser("operator", 3, true)
 Damagelog:AddUser("member", 3, false)
-Damagelog:AddUser("donator", 1, false)
-Damagelog:AddUser("stammspieler", 1, false)
+Damagelog:AddUser("donator", 2, false)
+Damagelog:AddUser("stammspieler", 2, false)
 Damagelog:AddUser("user", 1, false)
-Damagelog:AddUser("guest", 1, false)
 
 -- The F-key
 
