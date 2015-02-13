@@ -1,4 +1,3 @@
-
 local function CreateCommand()
 
 	if not Damagelog.Enable_Autoslay then return end
