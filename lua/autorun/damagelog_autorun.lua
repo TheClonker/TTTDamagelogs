@@ -10,7 +10,7 @@ if not file.IsDir("damagelog", "DATA") then
 end
 
 if file.Exists( "gmn_serverid.txt", "DATA" ) then
-	Damagelog.ServerID = file.Read( "gmn_serverid.txt", "DATA" ) or "temp"
+	Damagelog.ServerID = string.Trim( file.Read( "gmn_serverid.txt", "DATA" ) ) or "temp"
 end
 
 Damagelog.User_rights = Damagelog.User_rights or {}
