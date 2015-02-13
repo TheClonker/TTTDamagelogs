@@ -3,6 +3,8 @@ local function CreateCommand()
 	if not Damagelog.Enable_Autoslay then return end
 	if not ulx then return end
 
+	local category = "TTT Admin"
+	
 	function ulx.autoslay(calling_ply, target, rounds, reason)
 		Damagelog:SetSlays(calling_ply, target:SteamID(), rounds, reason, target)
 	end
@@ -21,7 +23,7 @@ local function CreateCommand()
 		end
 	end
 	
-	local autoslay = ulx.command("TTT", "ulx aslay", ulx.autoslay, "!aslay" )
+	local autoslay = ulx.command(category, "ulx aslay", ulx.autoslay, "!aslay" )
 	autoslay:addParam({ type=ULib.cmds.PlayerArg })
 	autoslay:addParam({ 
 		type=ULib.cmds.NumArg,
@@ -41,7 +43,7 @@ local function CreateCommand()
 	autoslay:defaultAccess(ULib.ACCESS_ADMIN)
 	autoslay:help("Slays the target for a specified number of rounds. Set the rounds to 0 to cancel the slay.")
 	
-	local autoslayid = ulx.command("TTT", "ulx aslayid", ulx.autoslayid, "!aslayid" )
+	local autoslayid = ulx.command(category, "ulx aslayid", ulx.autoslayid, "!aslayid" )
 	autoslayid:addParam({ 
 		type=ULib.cmds.StringArg, 
 		hint="steamid"
