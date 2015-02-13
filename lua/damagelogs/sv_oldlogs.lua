@@ -81,8 +81,8 @@ else
 			PRIMARY KEY (class));
 		]])
 	end
-	Damagelog.OlderDate = sql.QueryValue("SELECT MIN(date) FROM damagelog_oldlogs WHERE damagelog IS NOT NULL;")
-	Damagelog.LatestDate = sql.QueryValue("SELECT MAX(date) FROM damagelog_oldlogs WHERE damagelog IS NOT NULL;")
+	Damagelog.OlderDate = tonumber(sql.QueryValue("SELECT MIN(date) FROM damagelog_oldlogs WHERE damagelog IS NOT NULL;"))
+	Damagelog.LatestDate = tonumber(sql.QueryValue("SELECT MAX(date) FROM damagelog_oldlogs WHERE damagelog IS NOT NULL;"))
 	sql.Query("UPDATE damagelog_oldlogs SET damagelog = NULL WHERE date <= "..limit..";")
 	Damagelog:GetWepTable()
 end
@@ -142,8 +142,8 @@ end
 net.Receive("DL_AskOldLogRounds", function(_, ply)
 	local id = net.ReadUInt(32)
 	local year = net.ReadUInt(32)
-	local month = net.ReadUInt(32)
-	local day = net.ReadUInt(32)
+	local month = string.format("%02d",net.ReadUInt(32))
+	local day = string.format("%02d",net.ReadUInt(32))
 	local _date = "20"..year.."-"..month.."-"..day
 	if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
 		local query_str = "SELECT date, map FROM damagelog_oldlogs WHERE `serverid` = '" .. Damagelog.ServerID .. "' and date BETWEEN UNIX_TIMESTAMP(\"".._date.." 00:00:00\") AND UNIX_TIMESTAMP(\"".._date.." 23:59:59\") ORDER BY date ASC;"
