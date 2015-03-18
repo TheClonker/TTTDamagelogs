@@ -1,7 +1,7 @@
 
 Damagelog = Damagelog or {}
 
-Damagelog.VERSION = "2.2.1"
+Damagelog.VERSION = "2.2.2"
 
 Damagelog.ServerID = "temp"
 
