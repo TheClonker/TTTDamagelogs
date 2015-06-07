@@ -180,7 +180,6 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 			query.onSuccess = function(self)
 				local data = self:getData()	
 				if data[1] ~= nil then
-					v:Kill()
 					local admins = util.JSONToTable(data[1]["admins"]) or {}
 					local slays = data[1]["slays"]
 					local reason = data[1]["reason"]
@@ -196,6 +195,92 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 						local localquery = Damagelog.database:query(query_str)
 						localquery:start()
 						NetworkSlays(steamid, slays - 1)
+					end				
+					local list = Damagelog:CreateSlayList(admins)
+					net.Start("DL_AutoSlay")
+					net.WriteEntity(v)
+					net.WriteString(list)
+					net.WriteString(reason)
+					net.WriteString(Damagelog:FormatTime(tonumber(os.time()) - tonumber(_time)))
+					net.Broadcast()
+					if IsValid(v.server_ragdoll) then
+						local ply = player.GetByUniqueID(v.server_ragdoll.uqid)
+						if not IsValid(ply) then return end
+						ply:SetCleanRound(false)
+						ply:SetNWBool("body_found", true)
+						CORPSE.SetFound(v.server_ragdoll, true)
+						v.server_ragdoll:Remove()
+					end
+		end
+	end	
+end)
+
+hook.Add("PlayerDisconnected", "Autoslay_Message", function(ply)
+	if tonumber(ply.AutoslaysLeft) and tonumber(ply.AutoslaysLeft) > 0 then
+		net.Start("DL_PlayerLeft")
+		net.WriteString(ply:Nick())
+		net.WriteString(ply:SteamID())
+		net.WriteUInt(ply.AutoslaysLeft, 32)
+		net.Broadcast()
+	end
+end)
+
+if Damagelog.Autoslay_ForceRole then
+
+	hook.Add("Initialize", "Autoslay_ForceRole", function()
+
+		local function GetTraitorCount(ply_count)
+			local traitor_count = math.floor(ply_count * GetConVar("ttt_traitor_pct"):GetFloat())
+			traitor_count = math.Clamp(traitor_count, 1, GetConVar("ttt_traitor_max"):GetInt())
+			return traitor_count
+		end
+
+		local function GetDetectiveCount(ply_count)
+			if ply_count < GetConVar("ttt_detective_min_players"):GetInt() then return 0 end
+			local det_count = math.floor(ply_count * GetConVar("ttt_detective_pct"):GetFloat())
+			det_count = math.Clamp(det_count, 1, GetConVar("ttt_detective_max"):GetInt())
+			return det_count
+		end
+	
+		function SelectRoles()
+			local choices = {}
+			local prev_roles = {
+				[ROLE_INNOCENT] = {},
+				[ROLE_TRAITOR] = {},
+				[ROLE_DETECTIVE] = {}
+			};
+			if not GAMEMODE.LastRole then GAMEMODE.LastRole = {} end
+			for k,v in pairs(player.GetAll()) do
+				if IsValid(v) and (not v:IsSpec()) and not (v.AutoslaysLeft and tonumber(v.AutoslaysLeft) > 0) then
+					local r = GAMEMODE.LastRole[v:UniqueID()] or v:GetRole() or ROLE_INNOCENT
+					table.insert(prev_roles[r], v)
+					table.insert(choices, v)
+				end
+				v:SetRole(ROLE_INNOCENT)
+			end
+			local choice_count = #choices
+			local traitor_count = GetTraitorCount(choice_count)
+			local det_count = GetDetectiveCount(choice_count)
+			if choice_count == 0 then return end
+			local ts = 0
+			while ts < traitor_count do
+				local pick = math.random(1, #choices)
+				local pply = choices[pick]
+				if IsValid(pply) and ((not table.HasValue(prev_roles[ROLE_TRAITOR], pply)) or (math.random(1, 3) == 2)) then
+					pply:SetRole(ROLE_TRAITOR)
+					table.remove(choices, pick)
+					ts = ts + 1
+				end
+			end
+			local ds = 0
+			local min_karma = GetConVarNumber("ttt_detective_karma_min") or 0
+			while (ds < det_count) and (#choices >= 1) do
+				if #choices <= (det_count - ds) then
+					for k, pply in pairs(choices) do
+						if IsValid(pply) then
+							pply:SetRole(ROLE_DETECTIVE)
+						end
+>>>>>>> upstream/master
 					end
 					local list = Damagelog:CreateSlayList(admins)
 					net.Start("DL_AutoSlay")
