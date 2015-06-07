@@ -180,11 +180,13 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 			query.onSuccess = function(self)
 				local data = self:getData()	
 				if data[1] ~= nil then
+					
 					local admins = util.JSONToTable(data[1]["admins"]) or {}
 					local slays = data[1]["slays"]
 					local reason = data[1]["reason"]
 					local _time = data[1]["time"]
 					slays = slays - 1
+					
 					if slays <= 0 then
 						local query_str = "DELETE FROM damagelog_autoslay WHERE steamid = '"..v:SteamID().."';"
 						local localquery = Damagelog.database:query(query_str)
@@ -196,6 +198,7 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 						localquery:start()
 						NetworkSlays(steamid, slays - 1)
 					end				
+					
 					local list = Damagelog:CreateSlayList(admins)
 					net.Start("DL_AutoSlay")
 					net.WriteEntity(v)
@@ -203,6 +206,7 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 					net.WriteString(reason)
 					net.WriteString(Damagelog:FormatTime(tonumber(os.time()) - tonumber(_time)))
 					net.Broadcast()
+					
 					if IsValid(v.server_ragdoll) then
 						local ply = player.GetByUniqueID(v.server_ragdoll.uqid)
 						if not IsValid(ply) then return end
@@ -211,7 +215,9 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 						CORPSE.SetFound(v.server_ragdoll, true)
 						v.server_ragdoll:Remove()
 					end
-		end
+				end
+			end
+		end	
 	end	
 end)
 
