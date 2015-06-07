@@ -217,6 +217,7 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 					end
 				end
 			end
+			query:start()
 		end	
 	end	
 end)
@@ -286,25 +287,26 @@ if Damagelog.Autoslay_ForceRole then
 						if IsValid(pply) then
 							pply:SetRole(ROLE_DETECTIVE)
 						end
->>>>>>> upstream/master
 					end
-					local list = Damagelog:CreateSlayList(admins)
-					net.Start("DL_AutoSlay")
-					net.WriteEntity(v)
-					net.WriteString(list)
-					net.WriteString(reason)
-					net.WriteString(Damagelog:FormatTime(tonumber(os.time()) - tonumber(_time)))
-					net.Broadcast()
-					if IsValid(v.server_ragdoll) then
-						local ply = player.GetByUniqueID(v.server_ragdoll.uqid)
-						ply:SetCleanRound(false)
-						ply:SetNWBool("body_found", true)
-						CORPSE.SetFound(v.server_ragdoll, true)
-						v.server_ragdoll:Remove()
+					break
+				end
+				local pick = math.random(1, #choices)
+				local pply = choices[pick]
+				if (IsValid(pply) and ((pply:GetBaseKarma() > min_karma and table.HasValue(prev_roles[ROLE_INNOCENT], pply)) or math.random(1,3) == 2)) then
+					if not pply:GetAvoidDetective() then
+						pply:SetRole(ROLE_DETECTIVE)
+						ds = ds + 1
 					end
+					table.remove(choices, pick)
 				end
 			end
-			query:start()
+			GAMEMODE.LastRole = {}
+			for _, ply in pairs(player.GetAll()) do
+				ply:SetDefaultCredits()
+				GAMEMODE.LastRole[ply:UniqueID()] = ply:GetRole()
+			end
 		end
-	end	
-end)
+	
+	end)
+	
+end
