@@ -181,6 +181,8 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 				local data = self:getData()	
 				if data[1] ~= nil then
 					
+					v:Kill()
+					
 					local admins = util.JSONToTable(data[1]["admins"]) or {}
 					local slays = data[1]["slays"]
 					local reason = data[1]["reason"]
@@ -200,6 +202,7 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 					end				
 					
 					local list = Damagelog:CreateSlayList(admins)
+								
 					net.Start("DL_AutoSlay")
 					net.WriteEntity(v)
 					net.WriteString(list)
