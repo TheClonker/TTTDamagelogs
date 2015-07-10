@@ -114,40 +114,40 @@ function Damagelog:SetSlays(admin, steamid, slays, reason, target)
 			ulx.fancyLogAdmin(admin, "#A removed the autoslays of #T.", target)
 			NetworkSlays(steamid, 0)
 		else
-			ulx.fancyLogAdmin(admin, "#A removed the autoslays of #s.", steamid)
-		end
-		NetworkSlays(steamid, 0)
-	else
-	    local data = sql.QueryRow("SELECT * FROM damagelog_autoslay WHERE ply = '"..steamid.."' LIMIT 1;")
-		if data then
-			local adminid
-			if IsValid(admin) and type(admin) == "Player" then
-				adminid = admin:SteamID()
-			else
-				adminid = "Console"
-			end
-			local old_slays = tonumber(data.slays)
-			local old_steamids = util.JSONToTable(data.admins) or {}
-		    local new_steamids = table.Copy(old_steamids)
-	        if not table.HasValue(new_steamids, adminid) then
-			    table.insert(new_steamids, adminid)
-			end
-		    if old_slays == slays then
-				sql.Query("UPDATE damagelog_autoslay SET admins = "..sql.SQLStr(util.TableToJSON(new_steamids))..", reason = "..sql.SQLStr(reason)..", time = "..os.time().." WHERE ply = '"..steamid.."' LIMIT 1;")
-				local list = self:CreateSlayList(old_steamids)
-				local nick = self:GetName(steamid)
-				if target then
-					ulx.fancyLogAdmin(admin, "#A changed the reason of #T's autoslay to : '#s'. He was already autoslain "..slays.." time(s) by #s.", target, reason, list)
-				else
-					ulx.fancyLogAdmin(admin, "#A changed the reason of #s's autoslay to : '#s'. He was already autoslain "..slays.." time(s) by #s.", steamid, reason, list)
-				end
-			else
-				local difference = slays - old_slays
-				sql.Query(string.format("UPDATE damagelog_autoslay SET admins = %s, slays = %i, reason = %s, time = %s WHERE ply = '%s' LIMIT 1;", sql.SQLStr(new_admins), slays, sql.SQLStr(reason), tostring(os.time()), steamid))
-				local list = self:CreateSlayList(old_steamids)
-				local nick = self:GetName(steamid)
-				if target then
-					ulx.fancyLogAdmin(admin, "#A "..(difference > 0 and "added " or "removed ")..math.abs(difference).." slays to #T for the reason : '#s'. He was previously autoslain "..old_slays.." time(s) by #s.", target, reason, list)
+		    local query_str = "SELECT * FROM damagelog_autoslay WHERE steamid = '"..steamid.."' LIMIT 1;"
+			local query = Damagelog.database:query(query_str)
+			query.onSuccess = function(self)
+				local data = self:getData()
+				if data[1] ~= nil then
+					local adminid
+					if IsValid(admin) and type(admin) == "Player" then
+						adminid = admin:Nick()
+					else
+						adminid = "Console"
+					end
+					local old_slays = tonumber(data[1]["slays"])
+					local old_steamids = util.JSONToTable(data[1]["admins"]) or {}
+				    local new_steamids = table.Copy(old_steamids)
+			        if not table.HasValue(new_steamids, adminid) then
+					    table.insert(new_steamids, adminid)
+					end
+				    if old_slays == slays then
+				    	local query_str = "UPDATE damagelog_autoslay SET admins = "..sql.SQLStr(util.TableToJSON(new_steamids))..", reason = "..sql.SQLStr(reason)..", time = "..os.time().." WHERE steamid = '"..steamid.."' LIMIT 1;"
+						local localquery = Damagelog.database:query(query_str)
+						localquery:start()
+						local list = self:CreateSlayList(new_steamids)
+						local nick = self:GetName(steamid)
+						ulx.fancyLogAdmin(admin, "#A changed the reason of #T's autoslay to : '#s'. He was already autoslain "..slays.." time(s) by #s.", target, reason, list)
+					else
+						local difference = slays - old_slays
+						local query_str = string.format("UPDATE damagelog_autoslay SET admins = %s, slays = %i, reason = %s, time = %s WHERE steamid = '%s' LIMIT 1;", sql.SQLStr(new_admins), slays, sql.SQLStr(reason), tostring(os.time()), steamid)
+						local localquery = Damagelog.database:query(query_str)
+						localquery:start()
+						local list = self:CreateSlayList(new_steamids)
+						local nick = self:GetName(steamid)
+						ulx.fancyLogAdmin(admin, "#A "..(difference > 0 and "added " or "removed ")..math.abs(difference).." slays to #T for the reason : '#s'. He was previously autoslain "..old_slays.." time(s) by #s.", target, reason, list)
+						NetworkSlays(steamid, slays)
+					end
 				else
 					local admins
 					if IsValid(admin) and type(admin) == "Player" then
@@ -175,7 +175,7 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 			timer.Simple(1, function()
 				v:SetNWBool("PlayedSRound", true)
 			end)
-<<<<<<< HEAD
+
 			local query_str = "SELECT * FROM damagelog_autoslay WHERE steamid = '"..v:SteamID().."' LIMIT 1;"
 			local query = Damagelog.database:query(query_str)
 			query.onSuccess = function(self)
@@ -219,41 +219,6 @@ hook.Add("TTTBeginRound", "Damagelog_AutoSlay", function()
 						CORPSE.SetFound(v.server_ragdoll, true)
 						v.server_ragdoll:Remove()
 					end
-=======
-			local data = sql.QueryRow("SELECT * FROM damagelog_autoslay WHERE ply = '"..v:SteamID().."' LIMIT 1;")
-			if data then
-				v:Kill()
-				local admins = util.JSONToTable(data.admins) or {}
-				local slays = data.slays
-				local reason = data.reason
-				local _time = data.time
-				slays = slays - 1
-				if slays <= 0 then
-					sql.Query("DELETE FROM damagelog_autoslay WHERE ply = '"..v:SteamID().."';")
-					NetworkSlays(steamid, 0)
-					v.AutoslaysLeft = 0
-				else
-					sql.Query("UPDATE damagelog_autoslay SET slays = slays - 1 WHERE ply = '"..v:SteamID().."';")
-					NetworkSlays(steamid, slays - 1)
-					if tonumber(v.AutoslaysLeft) then
-						v.AutoslaysLeft = v.AutoslaysLeft - 1
-					end
-				end
-				local list = Damagelog:CreateSlayList(admins)
-				net.Start("DL_AutoSlay")
-				net.WriteEntity(v)
-				net.WriteString(list)
-				net.WriteString(reason)
-				net.WriteString(Damagelog:FormatTime(tonumber(os.time()) - tonumber(_time)))
-				net.Broadcast()
-				if IsValid(v.server_ragdoll) then
-					local ply = player.GetByUniqueID(v.server_ragdoll.uqid)
-					if not IsValid(ply) then return end
-					ply:SetCleanRound(false)
-					ply:SetNWBool("body_found", true)
-					CORPSE.SetFound(v.server_ragdoll, true)
-					v.server_ragdoll:Remove()
->>>>>>> original/master
 				end
 			end
 			query:start()
