@@ -1,7 +1,8 @@
 util.AddNetworkString("DL_SlayMessage")
 util.AddNetworkString("DL_AutoSlay")
 
-hook.Add("PlayerAuthed", "DamagelogNames", function(ply, steamid, uniqueid)
+hook.Add("PlayerAuthed", "DamagelogGetSlays", function(ply, steamid, uniqueid)
+
 	if Damagelog.Use_MySQL and Damagelog.MySQL_Connected then
 		local query_str = "SELECT slays FROM damagelog_autoslay WHERE steamid = '"..steamid.."' LIMIT 1;"
 		local query = Damagelog.database:query(query_str)
@@ -18,6 +19,7 @@ hook.Add("PlayerAuthed", "DamagelogNames", function(ply, steamid, uniqueid)
 		end
 		query:start()
 	end	
+
 end)
 
 function Damagelog:GetName(steamid)
