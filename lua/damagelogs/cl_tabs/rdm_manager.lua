@@ -486,7 +486,7 @@ net.Receive("DL_UpdateReports", function()
 end)
 
 local function DrawStatusMenuOption(id)
-	menu:AddOption(status(id), function()
+	menu:AddOption(status[id], function()
 		net.Start("DL_UpdateStatus")
 		net.WriteUInt(Damagelog.SelectedReport.previous and 1 or 0, 1)
 		net.WriteUInt(Damagelog.SelectedReport.index, 16)
