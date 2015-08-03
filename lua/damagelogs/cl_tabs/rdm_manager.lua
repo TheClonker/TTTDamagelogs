@@ -485,12 +485,12 @@ net.Receive("DL_UpdateReports", function()
 	end		
 end)
 
-local function DrawStatusMenuOption(id, menu)
-	menu:AddOption(status[id], function()
+local function DrawStatusMenuOption(id)
+	menu:AddOption(status(id), function()
 		net.Start("DL_UpdateStatus")
 		net.WriteUInt(Damagelog.SelectedReport.previous and 1 or 0, 1)
 		net.WriteUInt(Damagelog.SelectedReport.index, 16)
-		net.WriteUInt(id, 4)
+		net.WriteUInt(k, 4)
 		net.SendToServer()
 	end):SetImage(icons[id])
 end
@@ -545,21 +545,15 @@ function Damagelog:DrawRDMManager(x,y)
 		end
 		SetState.DoClick = function()
 			local menu = DermaMenu()
-			local attacker = player.GetBySteamID(Damagelog.SelectedReport.attacker)
-			if not IsValid(attacker) and (Damagelog.SelectedReport.status == RDM_MANAGER_WAITING_FOR_ATTACKER or Damagelog.SelectedReport.status == RDM_MANAGER_WAITING_FOR_VICTIM) then
-				DrawStatusMenuOption(RDM_MANAGER_PROGRESS, menu)
-			end
 			if Damagelog.SelectedReport.status == RDM_MANAGER_WAITING then
-				DrawStatusMenuOption(RDM_MANAGER_PROGRESS, menu)
+				DrawStatusMenuOption(RDM_MANAGER_PROGRESS)
 			end
 			if Damagelog.SelectedReport.status == RDM_MANAGER_PROGRESS then
-				if IsValid(attacker) then
-					DrawStatusMenuOption(RDM_MANAGER_WAITING, menu)
-				end
-				DrawStatusMenuOption(RDM_MANAGER_FINISHED, menu)
+				DrawStatusMenuOption(RDM_MANAGER_WAITING)
+				DrawStatusMenuOption(RDM_MANAGER_FINISHED)
 			end
 			if Damagelog.SelectedReport.status == RDM_MANAGER_FINISHED then
-				DrawStatusMenuOption(RDM_MANAGER_PROGRESS, menu)
+				DrawStatusMenuOption(RDM_MANAGER_PROGRESS)
 			end
 			menu:Open()
 		end
