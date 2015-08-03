@@ -548,6 +548,9 @@ function Damagelog:DrawRDMManager(x,y)
 			local attacker = player.GetBySteamID(Damagelog.SelectedReport.attacker)
 			if not IsValid(attacker) and (Damagelog.SelectedReport.status == RDM_MANAGER_WAITING_FOR_ATTACKER or Damagelog.SelectedReport.status == RDM_MANAGER_WAITING_FOR_VICTIM) then
 				DrawStatusMenuOption(RDM_MANAGER_PROGRESS, menu)
+				if IsValid(attacker) then
+					DrawStatusMenuOption(RDM_MANAGER_WAITING, menu)
+				end
 				DrawStatusMenuOption(RDM_MANAGER_FINISHED, menu)
 			end
 			if Damagelog.SelectedReport.status == RDM_MANAGER_WAITING then
@@ -561,6 +564,9 @@ function Damagelog:DrawRDMManager(x,y)
 				DrawStatusMenuOption(RDM_MANAGER_FINISHED, menu)
 			end
 			if Damagelog.SelectedReport.status == RDM_MANAGER_FINISHED then
+				if IsValid(attacker) then
+					DrawStatusMenuOption(RDM_MANAGER_WAITING, menu)
+				end
 				DrawStatusMenuOption(RDM_MANAGER_PROGRESS, menu)
 			end
 			menu:Open()
