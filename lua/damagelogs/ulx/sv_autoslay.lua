@@ -112,8 +112,11 @@ function Damagelog:SetSlays(admin, steamid, slays, reason, target)
 			local query_str = "DELETE FROM damagelog_autoslay WHERE steamid = '"..steamid.."';"
 			local query = Damagelog.database:query(query_str)
 			query:start()
-			local name = self:GetName(steamid)
-			ulx.fancyLogAdmin(admin, "#A removed the autoslays of #T.", target)
+			if target == false then
+				ulx.fancyLogAdmin(admin, "#A removed the autoslays of #s.", steamid)
+			else
+				ulx.fancyLogAdmin(admin, "#A removed the autoslays of #T.", target)
+			end
 			NetworkSlays(steamid, 0)
 		else
 		    local query_str = "SELECT * FROM damagelog_autoslay WHERE steamid = '"..steamid.."' LIMIT 1;"
@@ -137,17 +140,23 @@ function Damagelog:SetSlays(admin, steamid, slays, reason, target)
 				    	local query_str = "UPDATE damagelog_autoslay SET admins = "..sql.SQLStr(util.TableToJSON(new_steamids))..", reason = "..sql.SQLStr(reason)..", time = "..os.time().." WHERE steamid = '"..steamid.."' LIMIT 1;"
 						local localquery = Damagelog.database:query(query_str)
 						localquery:start()
-						local list = self:CreateSlayList(new_steamids)
-						local nick = self:GetName(steamid)
-						ulx.fancyLogAdmin(admin, "#A changed the reason of #T's autoslay to : '#s'. He was already autoslain "..slays.." time(s) by #s.", target, reason, list)
+						local list = Damagelog:CreateSlayList(new_steamids)
+						if target == false then
+							ulx.fancyLogAdmin(admin, "#A changed the reason of #s autoslay to : '#s'. He was already autoslain "..slays.." time(s) by #s.", steamid, reason, list)
+						else
+							ulx.fancyLogAdmin(admin, "#A changed the reason of #T's autoslay to : '#s'. He was already autoslain "..slays.." time(s) by #s.", target, reason, list)	
+						end
 					else
 						local difference = slays - old_slays
 						local query_str = string.format("UPDATE damagelog_autoslay SET admins = %s, slays = %i, reason = %s, time = %s WHERE steamid = '%s' LIMIT 1;", sql.SQLStr(new_admins), slays, sql.SQLStr(reason), tostring(os.time()), steamid)
 						local localquery = Damagelog.database:query(query_str)
 						localquery:start()
-						local list = self:CreateSlayList(new_steamids)
-						local nick = self:GetName(steamid)
-						ulx.fancyLogAdmin(admin, "#A "..(difference > 0 and "added " or "removed ")..math.abs(difference).." slays to #T for the reason : '#s'. He was previously autoslain "..old_slays.." time(s) by #s.", target, reason, list)
+						local list = Damagelog:CreateSlayList(new_steamids)
+						if target == false then
+							ulx.fancyLogAdmin(admin, "#A "..(difference > 0 and "added " or "removed ")..math.abs(difference).." slays to #s for the reason : '#s'. He was previously autoslain "..old_slays.." time(s) by #s.", steamid, reason, list)
+						else
+							ulx.fancyLogAdmin(admin, "#A "..(difference > 0 and "added " or "removed ")..math.abs(difference).." slays to #T for the reason : '#s'. He was previously autoslain "..old_slays.." time(s) by #s.", target, reason, list)
+						end
 						NetworkSlays(steamid, slays)
 					end
 				else
@@ -160,14 +169,18 @@ function Damagelog:SetSlays(admin, steamid, slays, reason, target)
 					local query_str = string.format("INSERT INTO damagelog_autoslay (`admins`, `steamid`, `slays`, `reason`, `time`) VALUES (%s, '%s', %i, %s, %s)", sql.SQLStr(admins), steamid, slays, sql.SQLStr(reason), tostring(os.time()))
 					local localquery = Damagelog.database:query(query_str)
 					localquery:start()
-					ulx.fancyLogAdmin(admin, "#A added "..slays.." autoslays to #T with the reason : '#s'", target, reason)
+					if target == false then
+						ulx.fancyLogAdmin(admin, "#A added "..slays.." autoslays to #s with the reason : '#s'", steamid, reason)					
+					else
+						ulx.fancyLogAdmin(admin, "#A added "..slays.." autoslays to #T with the reason : '#s'", target, reason)
+					end
 					NetworkSlays(steamid, slays)
 				end
 			end		
 			query:start()
 		end
 	else
-		print("Fu MySQL")
+		print("Fuck MySQL")
 	end
 end
 
